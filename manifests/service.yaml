@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: vsphere-ptr-record
+spec:
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ports:
+    - protocol: UDP
+      port: 5353
+      targetPort: 5353
+  internalTrafficPolicy: Cluster
+  type: NodePort
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: vsphere-ptr-record
+status:
+  loadBalancer: {}
