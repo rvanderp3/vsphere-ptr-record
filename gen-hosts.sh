@@ -18,5 +18,9 @@ if [ -n ${SUBNETS_JSON} ]; then
     fi
 fi
 
+cat /tmp/hosts
+
 # start dnsmasq
 dnsmasq -d -C dnsmasq.conf
+
+
