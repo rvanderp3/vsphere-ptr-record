@@ -6,7 +6,8 @@ WORKDIR dnsmasq
 RUN make
 RUN make install
 
+COPY dnsmasq.conf dnsmasq.conf
 COPY gen-hosts.sh gen-hosts.sh
 RUN /bin/sh gen-hosts.sh
 USER default
-CMD dnsmasq -d -H hosts -a 0.0.0.0 -p 9053
+CMD dnsmasq -d -C dnsmasq.conf
