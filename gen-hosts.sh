@@ -1,6 +1,6 @@
 oc login --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) -s https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT --certificate-authority /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
-oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' > ${SUBNETS_JSON}
+oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' | base64 -d > ${SUBNETS_JSON}
 
 ## Legacy subnets
 SUBNET_START=88

@@ -7,7 +7,7 @@ while true; do
         SHA_SUM=$(cat ${SUBNETS_JSON} | sha256sum)
     fi
 
-    oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' > ${SUBNETS_JSON}.test
+    oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' | base64 -d > ${SUBNETS_JSON}.test
 
     if [ ! -z ${SHA_SUM} ]; then
         TEST_SHA_SUM=$(cat ${SUBNETS_JSON}.test | sha256sum)
