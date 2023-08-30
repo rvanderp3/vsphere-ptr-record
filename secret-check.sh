@@ -9,7 +9,7 @@ while true; do
 
     oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' | base64 -d > ${SUBNETS_JSON}.test
 
-    if [ ! -z ${SHA_SUM} ]; then
+    if [ ! -z "${SHA_SUM}" ]; then
         TEST_SHA_SUM=$(cat ${SUBNETS_JSON}.test | sha256sum)
 
         if [[ $SHA_SUM != $TEST_SHA_SUM ]]; then
@@ -17,6 +17,7 @@ while true; do
             exit 0
         fi
     fi
+    mv ${SUBNETS_JSON}.test ${SUBNETS_JSON}
     echo no change detected, will check again in 30 seconds
     sleep 30
 done
