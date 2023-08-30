@@ -9,5 +9,6 @@ RUN make
 RUN make install
 COPY dnsmasq.conf dnsmasq.conf
 COPY gen-hosts.sh gen-hosts.sh
+COPY secret-check.sh secret-check.sh
 USER default
 CMD /bin/sh ./gen-hosts.sh
