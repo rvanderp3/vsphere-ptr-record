@@ -22,16 +22,6 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: Always
-        - name: secret-check
-          image: 'quay.io/ocp-splat/vsphere-ptr-record:latest'
-          resources: {}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-          imagePullPolicy: Always
-          command: 
-          - /bin/sh
-          args:
-          - ./secret-check.sh
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst

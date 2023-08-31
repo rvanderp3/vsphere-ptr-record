@@ -29,4 +29,27 @@ fi
 cat dnsmasq.conf >> ${DNSMASQ_CONF}
 
 # start dnsmasq
-dnsmasq -d -C ${DNSMASQ_CONF}
+dnsmasq -C ${DNSMASQ_CONF}
+
+while true; do
+    SHA_SUM=""
+
+    if [ -f ${SUBNETS_JSON} ]; then
+        SHA_SUM=$(cat ${SUBNETS_JSON} | sha256sum)
+    fi
+
+    oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data}' > ${SUBNETS_JSON}.test
+
+    if [ ! -z "${SHA_SUM}" ]; then
+        TEST_SHA_SUM=$(cat ${SUBNETS_JSON}.test | sha256sum)
+
+        if [[ $SHA_SUM != $TEST_SHA_SUM ]]; then
+            echo change detected in secret, exiting
+            exit 0
+        fi
+    fi
+
+    mv ${SUBNETS_JSON}.test ${SUBNETS_JSON}
+    echo no change detected, will check again in 30 seconds
+    sleep 30
+done
