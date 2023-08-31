@@ -3,6 +3,8 @@ oc login --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) -s h
 DNSMASQ_CONF=/tmp/dnsmasq.conf
 oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' | base64 -d > ${SUBNETS_JSON}
 oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.dnsmasq\.cfg}' | base64 -d > ${DNSMASQ_CONF}
+SHA_SUM="$(oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data}' | sha256sum)"
+echo "config hash $SHA_SUM"
 
 ## Legacy subnets
 SUBNET_START=88
@@ -32,24 +34,12 @@ cat dnsmasq.conf >> ${DNSMASQ_CONF}
 dnsmasq -C ${DNSMASQ_CONF}
 
 while true; do
-    SHA_SUM=""
+    TEST_SHA_SUM=$(oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data}' | sha256sum)
 
-    if [ -f ${SUBNETS_JSON} ]; then
-        SHA_SUM=$(cat ${SUBNETS_JSON} | sha256sum)
+    if [[ $SHA_SUM != $TEST_SHA_SUM ]]; then
+        echo change detected in secret ${TEST_SHA_SUM}, exiting
+        exit 0
     fi
-
-    oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data}' > ${SUBNETS_JSON}.test
-
-    if [ ! -z "${SHA_SUM}" ]; then
-        TEST_SHA_SUM=$(cat ${SUBNETS_JSON}.test | sha256sum)
-
-        if [[ $SHA_SUM != $TEST_SHA_SUM ]]; then
-            echo change detected in secret, exiting
-            exit 0
-        fi
-    fi
-
-    mv ${SUBNETS_JSON}.test ${SUBNETS_JSON}
     echo no change detected, will check again in 30 seconds
     sleep 30
 done
