@@ -1,6 +1,8 @@
 oc login --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) -s https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT --certificate-authority /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
+DNSMASQ_CONF=/tmp/dnsmasq.conf
 oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.subnets\.json}' | base64 -d > ${SUBNETS_JSON}
+oc get secret -n test-credentials vsphere-config -o=jsonpath='{.data.dnsmasq\.cfg}' | base64 -d > ${DNSMASQ_CONF}
 
 ## Legacy subnets
 SUBNET_START=88
@@ -24,7 +26,7 @@ if [ -n ${SUBNETS_JSON} ]; then
     fi
 fi
 
-cat /tmp/hosts
+cat dnsmasq.conf >> ${DNSMASQ_CONF}
 
 # start dnsmasq
-dnsmasq -d -C dnsmasq.conf
+dnsmasq -d -C ${DNSMASQ_CONF}
