@@ -20,11 +20,17 @@ done
 if [ -n ${SUBNETS_JSON} ]; then
     echo "checking for ${SUBNETS_JSON}"
     if [ -f ${SUBNETS_JSON} ]; then
-        echo "parsing ${SUBNETS_JSON}"
-        IPADDRESSES=$(cat ${SUBNETS_JSON} | jq -r .[].ipAddresses | grep -oP '"\K[^"]+' | grep -v ',')
-        for IPADDRESS in ${IPADDRESSES}; do
-            echo "$IPADDRESS $(echo $IPADDRESS | rev).in-addr.arpa" >> /tmp/hosts
-        done
+        echo "parsing ${SUBNETS_JSON}"        
+        DATACENTERS=($(cat ${SUBNETS_JSON} | jq -r 'keys | join(" ")'))
+        for DATACENTER in ${DATACENTERS[@]}; do    
+            VLANS=($(cat ${SUBNETS_JSON} | jq -r --arg DATACENTER "${DATACENTER}" '.[$DATACENTER] | keys | join(" ")'))
+            for VLAN in ${VLANS[@]}; do
+                IPADDRESSES=($(cat ${SUBNETS_JSON} | jq -r --arg DATACENTER "${DATACENTER}" --arg VLAN "${VLAN}" '.[$DATACENTER] | .[$VLAN] | .["ipAddresses"] | join(" ")'))
+                for IPADDRESS in ${IPADDRESSES[@]}; do
+                    echo "$IPADDRESS $(echo $IPADDRESS | rev).in-addr.arpa" >> /tmp/hosts
+                done
+            done
+        done        
     fi
 fi
 
@@ -43,3 +49,12 @@ while true; do
     echo no change detected, will check again in 30 seconds
     sleep 30
 done
+
+DATACENTERS=($(cat /tmp/subnets.json | jq -r 'keys | join(" ")'))
+for DATACENTER in ${DATACENTERS[@]}; do    
+    VLANS=($(cat /tmp/subnets.json | jq -r --arg DATACENTER "${DATACENTER}" '.[$DATACENTER] | keys | join(" ")'))
+    for VLAN in ${VLANS[@]}; do
+        ADDRESSES=($(cat /tmp/subnets.json | jq -r --arg DATACENTER "${DATACENTER}" --arg VLAN "${VLAN}" '.[$DATACENTER] | .[$VLAN] | .["ipAddresses"] | join(" ")'))
+    done
+done
+# cat /tmp/subnets.json | jq -r --arg DATACENTER "${DATACENTERS[0]}" '.[$DATACENTER]'
