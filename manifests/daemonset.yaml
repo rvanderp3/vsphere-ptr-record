@@ -1,6 +1,7 @@
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
+  namespace: vsphere-infra
   name: vsphere-ptr-record  
 spec:
   selector:
@@ -12,11 +13,21 @@ spec:
       labels:
         app: vsphere-ptr-record
     spec:
+      volumes:
+        - name: creds
+          secret:
+            secretName: build02-kubeconfig
       containers:
         - name: container
+          volumeMounts:
+            - mountPath: "/creds"
+              name: creds
+          env:
+            - name: KUBECONFIG
+              value: /creds/build02-kubeconfig
           image: 'quay.io/ocp-splat/vsphere-ptr-record:latest'
           ports:
-            - containerPort: 5353
+            - containerPort: 53
               protocol: TCP
           resources: {}
           terminationMessagePath: /dev/termination-log
@@ -25,6 +36,7 @@ spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
+      hostNetwork: true
       nodeSelector:
         node-role.kubernetes.io/master: ''
       securityContext: {}
